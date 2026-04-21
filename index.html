@@ -1,0 +1,2119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Freeflow</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  /* Monkeytype-warm palette */
+  --bg:#111;
+  --s1:#161616;
+  --s2:#1b1b1b;
+  --s3:#202020;
+  --b:rgba(255,255,255,.055);
+  --b2:rgba(255,255,255,.1);
+  --t:#ccc8be;        /* warm off-white */
+  --t2:#4a4845;       /* muted warm */
+  --t3:#282624;       /* very dim */
+  /* event colours — softer, desaturated */
+  --blue:#7aa2f7;
+  --green:#73d397;
+  --amber:#e5a84a;
+  --red:#f28b82;
+  --purple:#b39ddb;
+}
+html,body{
+  height:100%;overflow:hidden;
+  background:var(--bg);color:var(--t);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:2px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;display:none;}
+.screen.active{display:flex;}
+
+/* ══════════════════════════════
+   LANDING
+══════════════════════════════ */
+#landing{flex-direction:column;align-items:center;justify-content:center;background:#000;}
+#grid-canvas{position:absolute;inset:0;width:100%;height:100%;}
+.hero{position:relative;z-index:10;text-align:center;pointer-events:none;}
+.hero-logo{
+  font-size:clamp(64px,10vw,112px);
+  font-weight:800;letter-spacing:-6px;
+  color:#fff;line-height:.95;
+}
+.hero-logo em{font-style:normal;font-weight:200;letter-spacing:-3px;}
+.hero-tag{
+  font-size:11px;color:rgba(255,255,255,.28);
+  letter-spacing:.3em;text-transform:uppercase;
+  margin-top:22px;font-weight:500;
+}
+.enter-btn{
+  position:relative;z-index:10;margin-top:52px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.7);
+  padding:12px 40px;border-radius:2px;
+  font-size:11px;letter-spacing:.2em;font-weight:600;
+  text-transform:uppercase;cursor:pointer;pointer-events:all;
+  transition:all .25s;
+}
+.enter-btn:hover{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.35);
+  color:#fff;
+}
+.land-footer{
+  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  font-size:10px;color:rgba(255,255,255,.14);
+  letter-spacing:.18em;text-transform:uppercase;z-index:10;
+}
+
+/* ══════════════════════════════
+   AUTH
+══════════════════════════════ */
+#auth-screen{align-items:center;justify-content:center;background:#000;}
+#auth-canvas{position:absolute;inset:0;opacity:.3;}
+.auth-card{
+  position:relative;z-index:10;
+  width:380px;max-width:92vw;
+  padding:48px 40px;
+}
+.auth-logo{font-size:22px;font-weight:800;letter-spacing:-1px;margin-bottom:4px;color:#fff;}
+.auth-logo em{font-style:normal;font-weight:200;}
+.auth-sub{font-size:12px;color:var(--t2);margin-bottom:36px;letter-spacing:.01em;}
+.auth-tabs{
+  display:flex;margin-bottom:28px;
+  border-bottom:1px solid var(--b);
+}
+.auth-tab{
+  flex:1;padding:8px 0;font-size:12px;font-weight:600;
+  cursor:pointer;background:transparent;border:none;
+  color:var(--t2);letter-spacing:.06em;text-transform:uppercase;
+  transition:color .2s;border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+}
+.auth-tab.on{color:#fff;border-bottom-color:#fff;}
+
+/* ── SHARED FORM INPUTS ── */
+.fi{
+  width:100%;
+  padding:11px 0;
+  background:transparent;
+  border:none;
+  border-bottom:1px solid var(--b2);
+  border-radius:0;
+  font-size:13px;color:var(--t);
+  font-family:inherit;
+  outline:none;margin-bottom:18px;
+  transition:border-color .2s;
+}
+.fi:focus{border-bottom-color:rgba(255,255,255,.5);}
+.fi::placeholder{color:var(--t2);}
+select.fi{cursor:pointer;}
+textarea.fi{resize:vertical;padding:8px 0;border:1px solid var(--b);border-radius:4px;padding:8px 12px;background:var(--s1);}
+textarea.fi:focus{border-color:var(--b2);}
+
+/* ── BUTTONS ── */
+.btn-w{
+  width:100%;padding:12px;
+  background:#fff;color:#000;border:none;border-radius:2px;
+  font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;transition:opacity .2s;margin-top:8px;
+  font-family:inherit;
+}
+.btn-w:hover{opacity:.85;}
+.auth-divider{
+  text-align:center;font-size:10px;color:var(--t3);
+  margin:20px 0;letter-spacing:.12em;text-transform:uppercase;
+}
+.btn-canvas{
+  width:100%;padding:11px;background:transparent;
+  border:1px solid var(--b2);border-radius:2px;
+  font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--t);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;font-family:inherit;
+}
+.btn-canvas:hover{border-color:rgba(255,255,255,.3);color:#fff;}
+
+/* ══════════════════════════════
+   ONBOARDING
+══════════════════════════════ */
+#onboard-screen{flex-direction:column;align-items:center;justify-content:center;background:#111;}
+.ob-card{width:500px;max-width:92vw;}
+.ob-step-dots{display:flex;gap:5px;margin-bottom:44px;justify-content:center;}
+.ob-dot{width:5px;height:5px;border-radius:50%;background:var(--t3);transition:all .3s;}
+.ob-dot.on{background:var(--t);width:18px;border-radius:3px;}
+.ob-title{font-size:28px;font-weight:700;letter-spacing:-.8px;margin-bottom:10px;color:#fff;}
+.ob-sub{font-size:13px;color:var(--t2);margin-bottom:32px;line-height:1.65;}
+.ob-actions{display:flex;gap:10px;margin-top:28px;align-items:center;}
+.btn-back{
+  padding:11px 20px;background:transparent;border:1px solid var(--b2);border-radius:2px;
+  color:var(--t2);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  cursor:pointer;transition:all .2s;font-family:inherit;
+}
+.btn-back:hover{border-color:rgba(255,255,255,.3);color:#fff;}
+.btn-next{
+  flex:1;padding:11px;background:#fff;color:#000;border:none;border-radius:2px;
+  font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;transition:opacity .2s;font-family:inherit;
+}
+.btn-next:hover{opacity:.85;}
+.btn-skip{
+  padding:10px 14px;background:transparent;border:none;
+  color:var(--t2);font-size:11px;cursor:pointer;font-family:inherit;
+  letter-spacing:.05em;
+}
+.btn-skip:hover{color:var(--t);}
+
+/* ══════════════════════════════
+   MAIN APP SHELL
+══════════════════════════════ */
+#app-screen{background:var(--bg);}
+
+/* SIDEBAR */
+.sidebar{
+  width:210px;flex-shrink:0;
+  border-right:1px solid var(--b);
+  display:flex;flex-direction:column;
+  padding:28px 18px 20px;
+  gap:0;
+}
+.sb-logo{
+  font-size:19px;font-weight:800;letter-spacing:-1px;
+  padding:0 4px;margin-bottom:32px;color:#fff;
+}
+.sb-logo em{font-style:normal;font-weight:200;}
+.sb-nav{display:flex;flex-direction:column;gap:1px;flex:1;}
+.sb-item{
+  display:flex;align-items:center;gap:11px;
+  padding:8px 8px;border-radius:6px;
+  font-size:13px;font-weight:500;cursor:pointer;
+  color:var(--t2);transition:color .15s,background .15s;
+  letter-spacing:.01em;
+}
+.sb-item:hover{color:var(--t);}
+.sb-item.on{color:#fff;background:var(--s2);}
+.sb-icon{font-size:14px;width:18px;text-align:center;opacity:.7;}
+.sb-item.on .sb-icon{opacity:1;}
+.sb-divider{height:1px;background:var(--b);margin:12px 4px;}
+.sb-profile{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 8px;border-radius:6px;
+  cursor:pointer;transition:background .15s;margin-top:4px;
+}
+.sb-profile:hover{background:var(--s2);}
+.sb-avatar{
+  width:28px;height:28px;border-radius:50%;background:var(--t);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#111;flex-shrink:0;
+}
+.sb-pname{font-size:12px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-pid{font-size:10px;color:var(--t2);margin-top:1px;font-family:monospace;letter-spacing:.03em;}
+
+/* MAIN CONTENT */
+.main-content{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.content-header{
+  padding:32px 36px 0;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.content-title{font-size:20px;font-weight:700;letter-spacing:-.4px;color:#fff;}
+.content-sub{font-size:12px;color:var(--t2);margin-top:2px;}
+.header-actions{display:flex;gap:6px;}
+.icon-btn{
+  width:32px;height:32px;background:transparent;border:1px solid var(--b);
+  border-radius:4px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;color:var(--t2);transition:all .15s;
+}
+.icon-btn:hover{border-color:var(--b2);color:var(--t);}
+
+/* VIEWS */
+.view{display:none;padding:24px 36px 36px;flex:1;}
+.view.on{display:block;}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--b);border-radius:8px;padding:18px;}
+.card-label{
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t2);margin-bottom:14px;
+}
+
+/* ══════════════════════════════
+   HOME VIEW
+══════════════════════════════ */
+.home-grid{display:grid;grid-template-columns:1fr 300px;gap:24px;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+.stat-card{
+  padding:20px 22px;
+  border-bottom:1px solid var(--b);
+}
+.stat-num{font-size:36px;font-weight:800;letter-spacing:-2px;color:#fff;line-height:1;}
+.stat-label{font-size:10px;color:var(--t2);margin-top:6px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;}
+.stat-delta{font-size:11px;color:var(--green);margin-top:8px;}
+
+.ai-banner{
+  background:var(--s1);border:1px solid var(--b);
+  border-radius:8px;padding:22px 24px;margin-bottom:24px;
+  position:relative;overflow:hidden;
+}
+.ai-banner::after{
+  content:'';position:absolute;top:-80px;right:-80px;
+  width:220px;height:220px;
+  background:radial-gradient(circle,rgba(204,200,190,.03) 0%,transparent 70%);
+  pointer-events:none;
+}
+.ai-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t2);margin-bottom:12px;
+}
+.ai-badge::before{content:'✦';font-size:8px;color:var(--t);}
+.ai-greeting{font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:6px;color:#fff;}
+.ai-insight{font-size:13px;color:var(--t2);line-height:1.6;}
+
+.feed-item{
+  display:flex;gap:14px;padding:14px 0;
+  border-bottom:1px solid var(--b);cursor:default;
+  transition:opacity .15s;
+}
+.feed-item:last-child{border-bottom:none;}
+.feed-item:hover{opacity:.8;}
+.feed-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--s2);border:1px solid var(--b2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;color:var(--t);
+}
+.feed-body{flex:1;}
+.feed-name{font-size:13px;font-weight:600;color:#fff;}
+.feed-text{font-size:12px;color:var(--t2);margin-top:3px;line-height:1.55;}
+.feed-time{font-size:10px;color:var(--t2);margin-top:5px;opacity:.7;}
+
+/* ══════════════════════════════
+   GROUPS
+══════════════════════════════ */
+.groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1px;border:1px solid var(--b);border-radius:8px;overflow:hidden;}
+.group-card{
+  background:var(--s1);padding:22px;cursor:pointer;
+  transition:background .15s;
+}
+.group-card:hover{background:var(--s2);}
+.group-icon{font-size:22px;margin-bottom:14px;}
+.group-name{font-size:14px;font-weight:700;margin-bottom:3px;color:#fff;letter-spacing:-.2px;}
+.group-course{font-size:11px;color:var(--t2);}
+.group-meta{display:flex;align-items:center;gap:10px;margin-top:16px;}
+.group-members{font-size:11px;color:var(--t2);display:flex;align-items:center;gap:5px;}
+.group-activity{font-size:10px;color:var(--t2);}
+.member-stack{display:flex;}
+.m-av{
+  width:20px;height:20px;border-radius:50%;background:var(--s3);
+  border:1.5px solid var(--s1);
+  display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;
+  margin-left:-5px;color:var(--t);
+}
+.m-av:first-child{margin-left:0;}
+.add-group-card{
+  background:transparent;padding:22px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:140px;
+  transition:background .15s;color:var(--t2);
+}
+.add-group-card:hover{background:var(--s2);color:var(--t);}
+
+/* ══════════════════════════════
+   CALENDAR
+══════════════════════════════ */
+.cal-outer{display:grid;grid-template-columns:1fr 260px;gap:28px;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.cal-month{font-size:17px;font-weight:700;letter-spacing:-.3px;color:#fff;}
+.cal-nav{display:flex;gap:4px;}
+.cnav{
+  width:28px;height:28px;background:transparent;border:1px solid var(--b);
+  border-radius:4px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:13px;color:var(--t2);transition:all .15s;
+}
+.cnav:hover{border-color:var(--b2);color:var(--t);}
+.cal-day-hdrs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+.cdh{
+  text-align:center;font-size:9px;font-weight:700;color:var(--t2);
+  text-transform:uppercase;letter-spacing:.08em;padding:4px 0;
+}
+.cal-grid-main{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cday{
+  aspect-ratio:1;border-radius:4px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;
+  background:transparent;border:1px solid transparent;
+  transition:all .14s;min-height:36px;
+}
+.cday:hover{background:var(--s2);}
+.cday.oth{opacity:.2;}
+.cday.tod{background:#fff!important;}
+.cday.tod .cdn{color:#000;font-weight:800;}
+.cday.tod .cdot{background:rgba(0,0,0,.4)!important;}
+.cday.sel:not(.tod){border-color:var(--b2);background:var(--s2);}
+.cdn{font-size:12px;font-weight:500;color:var(--t);}
+.cdots{display:flex;gap:2px;margin-top:3px;}
+.cdot{width:3px;height:3px;border-radius:50%;}
+
+/* ══════════════════════════════
+   CLASSMATES
+══════════════════════════════ */
+.classmates-search{display:flex;gap:8px;margin-bottom:24px;}
+.search-box{
+  flex:1;display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid var(--b2);padding:0 4px;
+}
+.search-box input{
+  flex:1;background:none;border:none;color:var(--t);font-size:13px;
+  padding:10px 0;outline:none;font-family:inherit;
+}
+.search-box input::placeholder{color:var(--t2);}
+.cm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;border:1px solid var(--b);border-radius:8px;overflow:hidden;}
+.cm-card{
+  background:var(--s1);padding:20px;text-align:center;transition:background .15s;
+}
+.cm-card:hover{background:var(--s2);}
+.cm-avatar{
+  width:44px;height:44px;border-radius:50%;background:var(--s3);
+  border:1px solid var(--b2);
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  font-weight:700;margin:0 auto 10px;color:var(--t);
+}
+.cm-name{font-size:13px;font-weight:700;color:#fff;}
+.cm-school{font-size:11px;color:var(--t2);margin-top:2px;}
+.cm-courses{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:8px;}
+.cm-course{font-size:10px;padding:2px 8px;border-radius:2px;background:var(--s3);color:var(--t2);}
+.cm-actions{display:flex;gap:6px;margin-top:12px;}
+.cm-btn{
+  flex:1;padding:6px;border-radius:2px;font-size:11px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;
+  cursor:pointer;border:1px solid var(--b2);background:transparent;
+  color:var(--t2);transition:all .15s;font-family:inherit;
+}
+.cm-btn:hover{border-color:rgba(255,255,255,.25);color:var(--t);}
+.cm-btn.primary{background:#fff;color:#000;border-color:#fff;}
+.cm-btn.primary:hover{opacity:.85;}
+.ff-id{font-size:10px;color:var(--t2);margin-top:6px;font-family:monospace;opacity:.6;}
+
+/* ══════════════════════════════
+   AI VIEW
+══════════════════════════════ */
+.ai-layout{display:grid;grid-template-columns:1fr 260px;gap:20px;height:calc(100vh - 120px);}
+.ai-chat-area{display:flex;flex-direction:column;background:var(--s1);border:1px solid var(--b);border-radius:8px;overflow:hidden;}
+.ai-chat-header{
+  padding:16px 20px;border-bottom:1px solid var(--b);
+  display:flex;align-items:center;gap:12px;
+}
+.ai-chat-icon{font-size:16px;}
+.ai-chat-name{font-size:13px;font-weight:700;color:#fff;}
+.ai-chat-status{font-size:10px;color:var(--green);letter-spacing:.05em;}
+.ai-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
+.ai-msg{max-width:80%;font-size:13px;line-height:1.6;}
+.ai-msg.ai{color:var(--t);align-self:flex-start;padding:12px 16px;background:var(--s2);border-radius:2px 10px 10px 10px;}
+.ai-msg.user{color:#000;background:#fff;align-self:flex-end;padding:12px 16px;border-radius:10px 2px 10px 10px;}
+.ai-input-area{padding:14px 16px;border-top:1px solid var(--b);display:flex;gap:8px;}
+.ai-input{
+  flex:1;background:transparent;border:none;border-bottom:1px solid var(--b2);
+  padding:8px 4px;font-size:13px;color:var(--t);outline:none;
+  transition:border-color .2s;font-family:inherit;
+}
+.ai-input:focus{border-bottom-color:rgba(255,255,255,.4);}
+.ai-input::placeholder{color:var(--t2);}
+.ai-send{
+  background:#fff;border:none;border-radius:2px;
+  padding:8px 16px;font-size:12px;font-weight:700;
+  letter-spacing:.06em;color:#000;cursor:pointer;
+  transition:opacity .15s;font-family:inherit;
+}
+.ai-send:hover{opacity:.85;}
+.ai-sidebar{display:flex;flex-direction:column;gap:1px;}
+.quick-prompt{
+  padding:12px 14px;background:var(--s1);border:none;
+  font-size:12px;color:var(--t2);cursor:pointer;
+  transition:all .14s;text-align:left;font-family:inherit;
+  border-left:2px solid transparent;
+}
+.quick-prompt:first-child{border-radius:8px 8px 0 0;}
+.quick-prompt:last-child{border-radius:0 0 8px 8px;}
+.quick-prompt:hover{background:var(--s2);color:var(--t);border-left-color:var(--t);}
+
+/* ══════════════════════════════
+   MODALS
+══════════════════════════════ */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;z-index:900;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--s1);border:1px solid var(--b2);border-radius:8px;
+  padding:28px 30px;width:460px;max-width:92vw;
+  transform:translateY(12px);transition:transform .22s;
+}
+.overlay.open .modal{transform:translateY(0);}
+.modal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.modal-title{font-size:16px;font-weight:700;letter-spacing:-.3px;color:#fff;}
+.modal-close{background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;line-height:1;padding:2px;}
+.modal-close:hover{color:var(--t);}
+.fg{margin-bottom:18px;}
+.fg label{
+  display:block;font-size:10px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t2);margin-bottom:8px;
+}
+.ma{display:flex;gap:8px;margin-top:20px;}
+.btn-cancel{
+  flex:1;padding:11px;background:transparent;border:1px solid var(--b2);border-radius:2px;
+  color:var(--t2);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.btn-cancel:hover{border-color:var(--b2);color:var(--t);}
+.btn-save{
+  flex:2;padding:11px;background:#fff;border:none;border-radius:2px;
+  color:#000;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;font-family:inherit;transition:opacity .15s;
+}
+.btn-save:hover{opacity:.85;}
+
+/* ══════════════════════════════
+   EVENT ITEMS
+══════════════════════════════ */
+.ev-item{
+  display:flex;align-items:flex-start;gap:12px;padding:12px 0;
+  border-bottom:1px solid var(--b);border-left:none;margin-bottom:0;
+}
+.ev-item:last-child{border-bottom:none;}
+.ev-dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.ev-title{font-size:13px;font-weight:500;color:#fff;}
+.ev-meta{font-size:11px;color:var(--t2);margin-top:2px;}
+.empty-s{padding:24px 0;font-size:12px;color:var(--t2);line-height:1.7;text-align:center;}
+
+/* ══════════════════════════════
+   SETTINGS
+══════════════════════════════ */
+.settings-layout{display:grid;grid-template-columns:160px 1fr;gap:0;}
+.settings-nav{border-right:1px solid var(--b);padding-right:20px;display:flex;flex-direction:column;gap:1px;}
+.snav-item{
+  padding:8px 10px;border-radius:4px;font-size:13px;font-weight:500;
+  cursor:pointer;color:var(--t2);transition:all .14s;
+}
+.snav-item:hover{color:var(--t);}
+.snav-item.on{color:#fff;background:var(--s2);}
+.settings-content{padding-left:32px;}
+.stab-view{display:none;}
+.stab-view.on{display:block;}
+.s-section-title{font-size:13px;font-weight:700;margin-bottom:18px;color:#fff;letter-spacing:-.1px;}
+.info-box{
+  background:var(--s2);border:none;border-left:2px solid var(--b2);
+  border-radius:0;padding:14px 16px;font-size:12px;color:var(--t2);
+  line-height:1.7;margin-bottom:18px;
+}
+.connected-status{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;
+  color:var(--green);letter-spacing:.04em;
+}
+
+/* ══════════════════════════════
+   BADGES & UTILS
+══════════════════════════════ */
+.ff-badge{
+  display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;padding:2px 7px;border-radius:2px;
+}
+.badge-blue{background:rgba(122,162,247,.12);color:#7aa2f7;}
+.badge-green{background:rgba(115,211,151,.1);color:#73d397;}
+.badge-amber{background:rgba(229,168,74,.12);color:#e5a84a;}
+.badge-red{background:rgba(242,139,130,.1);color:#f28b82;}
+.badge-purple{background:rgba(179,157,219,.1);color:#b39ddb;}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeIn .35s ease forwards;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LANDING ══════════════ -->
+<div id="landing" class="screen active">
+  <canvas id="grid-canvas"></canvas>
+  <div class="hero fade-in">
+    <div class="hero-logo">Free<em>flow</em></div>
+    <div class="hero-tag">Student Collaboration Platform</div>
+    <button class="enter-btn" onclick="goAuth()">Enter &nbsp;→</button>
+  </div>
+  <div class="land-footer">Freeflow · Student Collaboration Platform</div>
+</div>
+
+<!-- ══════════════ AUTH ══════════════ -->
+<div id="auth-screen" class="screen" style="display:none;">
+  <canvas id="auth-canvas"></canvas>
+  <div class="auth-card fade-in">
+    <div class="auth-logo">Free<em>flow</em></div>
+    <div class="auth-sub">Sign in to your student workspace</div>
+    <div class="auth-tabs">
+      <button class="auth-tab on" onclick="authTab(this,'signin')">Sign In</button>
+      <button class="auth-tab"    onclick="authTab(this,'signup')">Sign Up</button>
+    </div>
+
+    <div id="signin-form">
+      <input class="fi" id="si-email" type="email" placeholder="Email or student ID" />
+      <input class="fi" id="si-pass" type="password" placeholder="Password" />
+      <button class="btn-w" onclick="doSignIn()">Sign In</button>
+      <div class="auth-divider">or</div>
+      <button class="btn-canvas" onclick="goOnboard()">🎓 &nbsp; Continue with Canvas</button>
+    </div>
+
+    <div id="signup-form" style="display:none">
+      <input class="fi" id="su-name" placeholder="Full name" />
+      <input class="fi" id="su-email" type="email" placeholder="Student email" />
+      <input class="fi" id="su-pass" type="password" placeholder="Password (8+ chars)" />
+      <button class="btn-w" onclick="doSignUp()">Create Account</button>
+      <div class="auth-divider">or</div>
+      <button class="btn-canvas" onclick="goOnboard()">🎓 &nbsp; Continue with Canvas</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ONBOARDING ══════════════ -->
+<div id="onboard-screen" class="screen" style="display:none;background:#000;align-items:center;justify-content:center;flex-direction:column;">
+  <div class="ob-card">
+    <div class="ob-step-dots" id="ob-dots"></div>
+    <div id="ob-content"></div>
+  </div>
+</div>
+
+<!-- ══════════════ MAIN APP ══════════════ -->
+<div id="app-screen" class="screen" style="display:none;overflow:hidden;">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sb-logo">Free<em>flow</em></div>
+    <div class="sb-nav">
+      <div class="sb-item on" onclick="nav(this,'home')"><span class="sb-icon">⊕</span> Home</div>
+      <div class="sb-item"    onclick="nav(this,'groups')"><span class="sb-icon">⊞</span> Groups</div>
+      <div class="sb-item"    onclick="nav(this,'calendar')"><span class="sb-icon">◫</span> Calendar</div>
+      <div class="sb-item"    onclick="nav(this,'classmates')"><span class="sb-icon">◎</span> Classmates</div>
+      <div class="sb-item"    onclick="nav(this,'ai')"><span class="sb-icon">✦</span> AI Assistant</div>
+      <div class="sb-divider"></div>
+      <div class="sb-item"    onclick="nav(this,'settings')"><span class="sb-icon">⚙</span> Settings</div>
+    </div>
+    <div class="sb-profile" onclick="nav(document.querySelector('.sb-item[onclick*=settings]'),'settings')">
+      <div class="sb-avatar" id="sb-avatar">?</div>
+      <div style="min-width:0">
+        <div class="sb-pname" id="sb-pname">—</div>
+        <div class="sb-pid" id="sb-pid">FF-000000</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="content-header">
+      <div>
+        <div class="content-title" id="view-title">Home</div>
+        <div class="content-sub" id="view-sub"></div>
+      </div>
+      <div class="header-actions" id="header-actions"></div>
+    </div>
+
+    <!-- ── HOME ── -->
+    <div class="view on" id="view-home">
+      <div style="margin-top:18px;">
+        <div class="ai-banner" id="home-ai-banner">
+          <div class="ai-badge">✦ AI Insights</div>
+          <div class="ai-greeting" id="home-greeting">Good morning!</div>
+          <div class="ai-insight" id="home-insight">Loading your dashboard…</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-num" id="stat-groups">0</div>
+            <div class="stat-label">Active Groups</div>
+            <div class="stat-delta">+0 this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="stat-events">0</div>
+            <div class="stat-label">Upcoming Events</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="stat-peers">0</div>
+            <div class="stat-label">Connected Peers</div>
+          </div>
+        </div>
+        <div class="home-grid">
+          <div>
+            <div class="card-label" style="margin-bottom:10px;">Recent Activity</div>
+            <div id="home-feed"></div>
+          </div>
+          <div>
+            <div class="card-label" style="margin-bottom:10px;">Today's Schedule</div>
+            <div id="home-today-events"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GROUPS ── -->
+    <div class="view" id="view-groups">
+      <div style="margin-top:18px;" id="groups-container"></div>
+    </div>
+
+    <!-- ── CALENDAR ── -->
+    <div class="view" id="view-calendar">
+      <div style="margin-top:18px;" class="cal-outer">
+        <div>
+          <div class="cal-header">
+            <div class="cal-month" id="cal-month-title"></div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div id="cal-group-filter" style="display:flex;gap:6px;"></div>
+              <div class="cal-nav">
+                <div class="cnav" onclick="changeMonth(-1)">‹</div>
+                <div class="cnav" onclick="changeMonth(1)">›</div>
+              </div>
+            </div>
+          </div>
+          <div class="cal-day-hdrs">
+            <div class="cdh">Su</div><div class="cdh">Mo</div><div class="cdh">Tu</div>
+            <div class="cdh">We</div><div class="cdh">Th</div><div class="cdh">Fr</div>
+            <div class="cdh">Sa</div>
+          </div>
+          <div class="cal-grid-main" id="main-cal-grid"></div>
+        </div>
+        <div>
+          <div class="card-label" style="margin-bottom:10px;">Selected Day</div>
+          <div id="cal-day-events"></div>
+          <div style="margin-top:18px;">
+            <div class="card-label" style="margin-bottom:10px;">Add Event</div>
+            <button class="btn-w" onclick="openAddEvent()">+ New Event</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CLASSMATES ── -->
+    <div class="view" id="view-classmates">
+      <div style="margin-top:18px;">
+        <div class="classmates-search">
+          <div class="search-box">
+            <span style="font-size:14px;color:var(--dim);">⌕</span>
+            <input id="cm-search" placeholder="Search by name, school, or Freeflow ID…" oninput="renderClassmates()" />
+          </div>
+          <button class="icon-btn" onclick="openAddClassmate()" title="Add by ID">＋</button>
+        </div>
+        <div id="cm-grid" class="cm-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── AI ── -->
+    <div class="view" id="view-ai">
+      <div style="margin-top:18px;" class="ai-layout">
+        <div class="ai-chat-area">
+          <div class="ai-chat-header">
+            <div class="ai-chat-icon">✦</div>
+            <div>
+              <div class="ai-chat-name">Freeflow AI</div>
+              <div class="ai-chat-status">● Online</div>
+            </div>
+          </div>
+          <div class="ai-messages" id="ai-messages"></div>
+          <div class="ai-input-area">
+            <input class="ai-input" id="ai-input" placeholder="Ask anything about your schedule, homework, or study tips…" />
+            <button class="ai-send" onclick="sendAI()">↑</button>
+          </div>
+        </div>
+        <div class="ai-sidebar">
+          <div class="card-label">Quick Prompts</div>
+          <div class="quick-prompt" onclick="quickAI(this)">What do I have today?</div>
+          <div class="quick-prompt" onclick="quickAI(this)">Any deadlines this week?</div>
+          <div class="quick-prompt" onclick="quickAI(this)">Give me a study tip</div>
+          <div class="quick-prompt" onclick="quickAI(this)">Summarize my groups</div>
+          <div class="quick-prompt" onclick="quickAI(this)">Who can help with my coursework?</div>
+          <div class="quick-prompt" onclick="quickAI(this)">What's due next?</div>
+          <div style="margin-top:12px;" class="card-label">AI Settings</div>
+          <div class="card" id="ai-settings-card">
+            <div style="font-size:12px;color:var(--dim);margin-bottom:10px;">Connect Claude API for advanced AI</div>
+            <input class="fi" id="ai-api-key" type="password" placeholder="sk-ant-… (optional)" style="margin-bottom:8px;" />
+            <button class="btn-w" onclick="saveAIKey()" style="font-size:12px;padding:8px;">Save Key</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="view" id="view-settings">
+      <div style="margin-top:18px;" class="settings-layout">
+        <div class="settings-nav">
+          <div class="snav-item on" onclick="sTab(this,'profile')">Profile</div>
+          <div class="snav-item"    onclick="sTab(this,'integrations')">Integrations</div>
+          <div class="snav-item"    onclick="sTab(this,'groups-s')">Groups</div>
+          <div class="snav-item"    onclick="sTab(this,'privacy')">Privacy</div>
+        </div>
+        <div class="settings-content">
+          <!-- Profile -->
+          <div class="stab-view on" id="stab-profile">
+            <div class="s-section-title">Your Profile</div>
+            <div class="fg"><label>Full Name</label><input class="fi" id="set-name" /></div>
+            <div class="fg"><label>Email</label><input class="fi" id="set-email" type="email" /></div>
+            <div class="fg"><label>School</label><input class="fi" id="set-school" /></div>
+            <div class="fg"><label>Your Freeflow ID</label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <input class="fi" id="set-ffid" readonly style="font-family:monospace;color:var(--dim);" />
+                <button class="icon-btn" onclick="copyFFID()" title="Copy">⎘</button>
+              </div>
+              <div style="font-size:11px;color:var(--dim);margin-top:5px;">Share this ID so classmates can find you on Freeflow</div>
+            </div>
+            <button class="btn-w" onclick="saveProfile()" style="max-width:200px;">Save Profile</button>
+          </div>
+          <!-- Integrations -->
+          <div class="stab-view" id="stab-integrations">
+            <div class="s-section-title">Canvas LMS</div>
+            <div class="info-box" style="line-height:1.7;">
+              <div style="font-weight:700;color:#fff;margin-bottom:8px;">How to get your Canvas API token:</div>
+              <div style="display:flex;flex-direction:column;gap:5px;">
+                <div><span style="color:#fff;font-weight:700;">1.</span> Open Canvas and click your <span style="color:#fff;font-weight:600;">profile picture</span> (top-left corner)</div>
+                <div><span style="color:#fff;font-weight:700;">2.</span> Go to <span style="color:#fff;font-weight:600;">Account → Settings</span></div>
+                <div><span style="color:#fff;font-weight:700;">3.</span> Scroll down to <span style="color:#fff;font-weight:600;">"Approved Integrations"</span></div>
+                <div><span style="color:#fff;font-weight:700;">4.</span> Click <span style="color:#fff;font-weight:600;">+ New Access Token</span></div>
+                <div><span style="color:#fff;font-weight:700;">5.</span> Give it any name (e.g. "Freeflow"), leave expiry blank, click <span style="color:#fff;font-weight:600;">Generate Token</span></div>
+                <div><span style="color:#fff;font-weight:700;">6.</span> <span style="color:#fff;font-weight:600;">Copy the token</span> shown — you won't see it again — and paste it below</div>
+              </div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#777;">🔒 Freeflow only reads your calendar and assignments — it never posts or changes anything in Canvas.</div>
+            </div>
+            <div class="fg"><label>Canvas URL <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dimmer);">— your school's Canvas domain</span></label><input class="fi" id="set-canvas-url" placeholder="e.g. https://canvas.university.edu" /></div>
+            <div class="fg"><label>API Token <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dimmer);">— from Step 6 above</span></label><input class="fi" id="set-canvas-token" type="password" placeholder="Paste your token here…" /></div>
+            <button class="btn-w" onclick="saveCanvasAndSync()" style="max-width:220px;">Connect Canvas</button>
+            <div style="height:1px;background:var(--border);margin:24px 0;"></div>
+            <div class="s-section-title">Google Calendar</div>
+            <div class="info-box">Needs a Google OAuth client ID — <a href="https://console.cloud.google.com" target="_blank" style="color:#fff;">create one here</a> with Calendar API enabled.</div>
+            <div class="fg"><label>Google OAuth Client ID</label><input class="fi" id="set-google-id" placeholder="xxxxx.apps.googleusercontent.com" /></div>
+            <button class="btn-w" onclick="connectGoogle()" style="max-width:220px;">Connect Google Calendar</button>
+          </div>
+          <!-- Groups settings -->
+          <div class="stab-view" id="stab-groups-s">
+            <div class="s-section-title">Manage Groups</div>
+            <div id="groups-settings-list"></div>
+            <button class="btn-w" onclick="nav(document.querySelector('.sb-item[onclick*=groups]'),'groups');openAddGroup()" style="max-width:200px;margin-top:12px;">Create New Group</button>
+          </div>
+          <!-- Privacy -->
+          <div class="stab-view" id="stab-privacy">
+            <div class="s-section-title">Privacy & Discovery</div>
+            <div class="info-box">Control what classmates can see when they search for you by Freeflow ID or student email.</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;">
+                <input type="checkbox" id="priv-name" checked /> Show my name in search results
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;">
+                <input type="checkbox" id="priv-courses" checked /> Show my courses to classmates
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;">
+                <input type="checkbox" id="priv-school" checked /> Show my school
+              </label>
+            </div>
+            <button class="btn-w" onclick="alert('Privacy settings saved!')" style="max-width:200px;margin-top:20px;">Save Privacy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end main-content -->
+</div><!-- end app-screen -->
+
+<!-- ══════════════ MODALS ══════════════ -->
+<!-- Add Event -->
+<div class="overlay" id="ev-overlay" onclick="oc(event,'ev-overlay')">
+  <div class="modal">
+    <div class="modal-top">
+      <div class="modal-title" id="ev-modal-title">New Event</div>
+      <button class="modal-close" onclick="cm('ev-overlay')">✕</button>
+    </div>
+    <div class="fg"><label>Title</label><input class="fi" id="ev-title" placeholder="Event title…"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="fg"><label>Date</label><input class="fi" id="ev-date" type="date"/></div>
+      <div class="fg"><label>Time</label><input class="fi" id="ev-time" type="time"/></div>
+    </div>
+    <div class="fg"><label>Type</label>
+      <select class="fi" id="ev-type">
+        <option value="class">Class</option>
+        <option value="assignment">Assignment</option>
+        <option value="exam">Exam</option>
+        <option value="meeting">Meeting</option>
+        <option value="personal">Personal</option>
+      </select>
+    </div>
+    <div class="fg"><label>Group (optional)</label>
+      <select class="fi" id="ev-group"><option value="">— Personal event —</option></select>
+    </div>
+    <div class="ma">
+      <button class="btn-cancel" onclick="cm('ev-overlay')">Cancel</button>
+      <button class="btn-save" onclick="saveEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Group -->
+<div class="overlay" id="grp-overlay" onclick="oc(event,'grp-overlay')">
+  <div class="modal">
+    <div class="modal-top">
+      <div class="modal-title">Create Study Group</div>
+      <button class="modal-close" onclick="cm('grp-overlay')">✕</button>
+    </div>
+    <div class="fg"><label>Group Name</label><input class="fi" id="grp-name" placeholder="e.g. CS 101 Study Squad"/></div>
+    <div class="fg"><label>Course / Subject</label><input class="fi" id="grp-course" placeholder="e.g. Introduction to Computer Science"/></div>
+    <div class="fg"><label>Emoji Icon</label><input class="fi" id="grp-icon" placeholder="📚" maxlength="2"/></div>
+    <div class="fg"><label>Description (optional)</label>
+      <textarea class="fi" id="grp-desc" rows="2" placeholder="What's this group for?" style="resize:vertical;"></textarea>
+    </div>
+    <div class="ma">
+      <button class="btn-cancel" onclick="cm('grp-overlay')">Cancel</button>
+      <button class="btn-save" onclick="saveGroup()">Create Group</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Classmate -->
+<div class="overlay" id="cm-overlay" onclick="oc(event,'cm-overlay')">
+  <div class="modal">
+    <div class="modal-top">
+      <div class="modal-title">Add Classmate</div>
+      <button class="modal-close" onclick="cm('cm-overlay')">✕</button>
+    </div>
+    <div class="info-box">Enter a Freeflow ID (FF-XXXXXX) or student email to connect with a classmate. They will appear in your network once connected.</div>
+    <div class="fg"><label>Freeflow ID or Email</label><input class="fi" id="cm-add-id" placeholder="FF-123456 or student@uni.edu"/></div>
+    <div class="ma">
+      <button class="btn-cancel" onclick="cm('cm-overlay')">Cancel</button>
+      <button class="btn-save" onclick="doAddClassmate()">Send Request</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+//  LIQUID GRID ENGINE
+// ════════════════════════════════════════════════════
+let gridCfg = null;
+function startGrid(canvasEl, opts={}) {
+  const ctx = canvasEl.getContext('2d');
+  const CELL = opts.cell || 44;
+  const SPRING = opts.spring || 0.045;
+  const DAMP   = opts.damp   || 0.82;
+  const MR     = opts.mr     || 160;
+  const MF     = opts.mf     || 9;
+  const BASE   = opts.base   || 0.10;
+  const BOOST  = opts.boost  || 0.65;
+  const NOISE  = opts.noise  || 0.015;
+
+  let cols, rows, pts = [], mouse = {x:-9999,y:-9999}, raf;
+  let time = 0;
+
+  function resize() {
+    canvasEl.width  = canvasEl.offsetWidth;
+    canvasEl.height = canvasEl.offsetHeight;
+    cols = Math.ceil(canvasEl.width  / CELL) + 3;
+    rows = Math.ceil(canvasEl.height / CELL) + 3;
+    pts = [];
+    for (let r=0;r<rows;r++) {
+      for (let c=0;c<cols;c++) {
+        const ox = (c-1)*CELL, oy = (r-1)*CELL;
+        pts.push({ox,oy,x:ox,y:oy,vx:0,vy:0,c,r});
+      }
+    }
+  }
+
+  function gp(c,r){return pts[r*cols+c];}
+
+  function update() {
+    time += 0.008;
+    for (const p of pts) {
+      // Autonomous subtle wave
+      const wave = Math.sin(p.ox*0.018 + time)*NOISE + Math.cos(p.oy*0.018 + time*0.7)*NOISE;
+      // Spring
+      let ax = (p.ox - p.x)*SPRING + wave;
+      let ay = (p.oy - p.y)*SPRING + wave;
+      // Mouse push
+      const dx=p.x-mouse.x, dy=p.y-mouse.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<MR && dist>0){
+        const f=Math.pow(1-dist/MR,2)*MF;
+        ax += (dx/dist)*f;
+        ay += (dy/dist)*f;
+      }
+      p.vx=(p.vx+ax)*DAMP;
+      p.vy=(p.vy+ay)*DAMP;
+      p.x+=p.vx; p.y+=p.vy;
+    }
+  }
+
+  function lineAlpha(p1,p2){
+    const mx=(p1.x+p2.x)*.5, my=(p1.y+p2.y)*.5;
+    const d=Math.sqrt((mx-mouse.x)**2+(my-mouse.y)**2);
+    return BASE + Math.max(0,1-d/MR)*BOOST;
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvasEl.width,canvasEl.height);
+    // Glow at cursor
+    const g=ctx.createRadialGradient(mouse.x,mouse.y,0,mouse.x,mouse.y,MR*1.2);
+    g.addColorStop(0,'rgba(255,255,255,0.05)');
+    g.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,canvasEl.width,canvasEl.height);
+
+    ctx.lineWidth=0.55;
+    // Horizontal
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols-1;c++){
+        const a=gp(c,r),b=gp(c+1,r);
+        const al=lineAlpha(a,b);
+        ctx.beginPath(); ctx.strokeStyle=`rgba(255,255,255,${al})`;
+        ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      }
+    }
+    // Vertical
+    for(let c=0;c<cols;c++){
+      for(let r=0;r<rows-1;r++){
+        const a=gp(c,r),b=gp(c,r+1);
+        const al=lineAlpha(a,b);
+        ctx.beginPath(); ctx.strokeStyle=`rgba(255,255,255,${al})`;
+        ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      }
+    }
+    // Dots
+    for(const p of pts){
+      const d=Math.sqrt((p.x-mouse.x)**2+(p.y-mouse.y)**2);
+      const near=d<MR;
+      const op=near?0.18+(1-d/MR)*0.6:0.1;
+      const sz=near?0.8+(1-d/MR)*1.8:0.5;
+      ctx.beginPath(); ctx.arc(p.x,p.y,sz,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${op})`; ctx.fill();
+    }
+  }
+
+  function loop(){update();draw();raf=requestAnimationFrame(loop);}
+
+  canvasEl.addEventListener('mousemove',e=>{
+    const r=canvasEl.getBoundingClientRect();
+    mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top;
+  });
+  canvasEl.addEventListener('mouseleave',()=>{mouse.x=-9999;mouse.y=-9999;});
+  // Click ripple
+  canvasEl.addEventListener('click',e=>{
+    const r=canvasEl.getBoundingClientRect();
+    const cx=e.clientX-r.left, cy=e.clientY-r.top;
+    for(const p of pts){
+      const dx=p.x-cx,dy=p.y-cy;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<250){
+        const f=(1-d/250)*14;
+        p.vx+=(dx/(d||1))*f; p.vy+=(dy/(d||1))*f;
+      }
+    }
+  });
+
+  resize();
+  window.addEventListener('resize',()=>{cancelAnimationFrame(raf);resize();loop();});
+  loop();
+  return {stop:()=>cancelAnimationFrame(raf),canvas:canvasEl};
+}
+
+// ════════════════════════════════════════════════════
+//  APP STATE
+// ════════════════════════════════════════════════════
+const APP = {
+  user: null,
+  events: [],
+  groups: [],
+  classmates: [],
+  selDate: new Date(),
+  viewDate: new Date(),
+  settings: {canvasUrl:'',canvasToken:'',googleClientId:'',googleToken:null,claudeKey:''},
+  aiMessages:[],
+};
+
+const TYPE_COLOR = {
+  class:'#3b82f6',assignment:'#f59e0b',exam:'#ef4444',
+  meeting:'#22c55e',personal:'#a855f7'
+};
+
+function save(){
+  try{
+    localStorage.setItem('ff_user',JSON.stringify(APP.user));
+    localStorage.setItem('ff_events',JSON.stringify(APP.events));
+    localStorage.setItem('ff_groups',JSON.stringify(APP.groups));
+    localStorage.setItem('ff_classmates',JSON.stringify(APP.classmates));
+    localStorage.setItem('ff_settings',JSON.stringify(APP.settings));
+  }catch(e){}
+}
+function load(){
+  try{
+    const u=localStorage.getItem('ff_user');
+    const ev=localStorage.getItem('ff_events');
+    const gr=localStorage.getItem('ff_groups');
+    const cm=localStorage.getItem('ff_classmates');
+    const st=localStorage.getItem('ff_settings');
+    if(u)  APP.user=JSON.parse(u);
+    if(ev) APP.events=JSON.parse(ev);
+    if(gr) APP.groups=JSON.parse(gr);
+    if(cm) APP.classmates=JSON.parse(cm);
+    if(st) Object.assign(APP.settings,JSON.parse(st));
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════════════
+//  ROUTING / SCREENS
+// ════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.style.display='none'; s.classList.remove('active');
+  });
+  const el=document.getElementById(id);
+  el.style.display='flex'; el.classList.add('active');
+}
+
+function goAuth(){
+  showScreen('auth-screen');
+  const c=document.getElementById('auth-canvas');
+  c.style.width='100%'; c.style.height='100%';
+  startGrid(c,{cell:55,spring:0.03,damp:0.88,mr:120,mf:5,base:0.06,boost:0.3,noise:0.008});
+}
+
+function authTab(el,which){
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('signin-form').style.display = which==='signin'?'':'none';
+  document.getElementById('signup-form').style.display = which==='signup'?'':'none';
+}
+
+function doSignIn(){
+  const email = document.getElementById('si-email').value.trim();
+  if(!email){alert('Please enter your email.');return;}
+  // Demo: accept any credentials
+  APP.user = APP.user || createUser(email.split('@')[0]||'Student', email);
+  save(); goApp();
+}
+
+function doSignUp(){
+  const name  = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  if(!name||!email){alert('Please fill in all fields.');return;}
+  APP.user = createUser(name, email);
+  save(); goOnboard();
+}
+
+function createUser(name, email){
+  return {
+    name, email,
+    school: '',
+    ffId: 'FF-'+Math.random().toString(36).slice(2,8).toUpperCase(),
+    avatar: name.charAt(0).toUpperCase(),
+  };
+}
+
+function goOnboard(){
+  if(!APP.user) APP.user = createUser('Student','student@uni.edu');
+  showScreen('onboard-screen');
+  obStep(0);
+}
+
+// ════════════════════════════════════════════════════
+//  ONBOARDING STEPS
+// ════════════════════════════════════════════════════
+const OB_STEPS = [
+  {
+    title:'Welcome to Freeflow 👋',
+    sub:'The student collaboration platform where everything flows. Let\'s get you set up in 3 steps.',
+    render: () => `
+      <div class="fg"><label>Your Name</label>
+        <input class="fi" id="ob-name" value="${APP.user?.name||''}" placeholder="Your full name"/>
+      </div>
+      <div class="fg"><label>School / University</label>
+        <input class="fi" id="ob-school" placeholder="e.g. University of Michigan"/>
+      </div>`,
+    next: () => {
+      const n=document.getElementById('ob-name').value.trim();
+      const s=document.getElementById('ob-school').value.trim();
+      if(!n){alert('Please enter your name.');return false;}
+      APP.user.name=n; APP.user.avatar=n.charAt(0).toUpperCase();
+      APP.user.school=s; save(); return true;
+    }
+  },
+  {
+    title:'Connect Canvas 🎓',
+    sub:'Link your school\'s Canvas LMS to automatically import your assignments, events, and courses.',
+    render: () => `
+      <div class="fg"><label>Canvas URL</label>
+        <input class="fi" id="ob-canvas-url" placeholder="https://yourschool.instructure.com"
+          value="${APP.settings.canvasUrl||''}"/>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;line-height:1.8;color:#aaa;">
+        <div style="font-weight:700;color:#fff;margin-bottom:6px;">How to get your token:</div>
+        <div><span style="color:#fff;font-weight:600;">1.</span> In Canvas, click your <span style="color:#fff;">profile picture</span> → <span style="color:#fff;">Account → Settings</span></div>
+        <div><span style="color:#fff;font-weight:600;">2.</span> Scroll to <span style="color:#fff;">"Approved Integrations"</span> → click <span style="color:#fff;">+ New Access Token</span></div>
+        <div><span style="color:#fff;font-weight:600;">3.</span> Name it anything, click <span style="color:#fff;">Generate Token</span>, then <span style="color:#fff;">copy it</span></div>
+        <div><span style="color:#fff;font-weight:600;">4.</span> Paste it in the field below — you won't see the token again after closing that dialog</div>
+      </div>
+      <div class="fg"><label>API Token</label>
+        <input class="fi" id="ob-canvas-token" type="password" placeholder="Paste your Canvas token here…"/>
+      </div>`,
+    next: () => {
+      const url=document.getElementById('ob-canvas-url').value.trim().replace(/\/$/,'');
+      const tok=document.getElementById('ob-canvas-token').value.trim();
+      APP.settings.canvasUrl=url; APP.settings.canvasToken=tok; save(); return true;
+    }
+  },
+  {
+    title:'Find Your Classmates 🤝',
+    sub:'Freeflow lets classmates connect, share notes, and collaborate. Your Freeflow ID is your key.',
+    render: () => `
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:16px;">
+        <div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Your Freeflow ID</div>
+        <div style="font-size:28px;font-weight:900;letter-spacing:2px;font-family:monospace;">${APP.user?.ffId||'FF-??????'}</div>
+        <div style="font-size:12px;color:var(--dim);margin-top:8px;">Share this with classmates so they can find you</div>
+      </div>
+      <div style="font-size:13px;color:#aaa;line-height:1.6;">
+        In the future, Canvas login IDs will automatically connect you with enrolled classmates — creating course-based groups instantly. Coming soon! 🚀
+      </div>`,
+    next: () => true
+  }
+];
+
+let obCurrent = 0;
+function obStep(n){
+  obCurrent = n;
+  const steps = OB_STEPS;
+  // Dots
+  const dots = document.getElementById('ob-dots');
+  dots.innerHTML = steps.map((_,i)=>`<div class="ob-dot${i===n?' on':''}"></div>`).join('');
+  // Content
+  const step = steps[n];
+  document.getElementById('ob-content').innerHTML = `
+    <div class="ob-title">${step.title}</div>
+    <div class="ob-sub">${step.sub}</div>
+    ${step.render()}
+    <div class="ob-actions">
+      ${n>0?`<button class="btn-back" onclick="obStep(${n-1})">← Back</button>`:''}
+      ${n<steps.length-1
+        ?`<button class="btn-next" onclick="obNext(${n})">Continue →</button>
+          <button class="btn-skip" onclick="obStep(${n+1})">Skip</button>`
+        :`<button class="btn-next" onclick="obFinish()">Enter Freeflow →</button>`
+      }
+    </div>`;
+}
+
+function obNext(n){
+  const ok = OB_STEPS[n].next();
+  if(ok!==false) obStep(n+1);
+}
+
+function obFinish(){
+  OB_STEPS[obCurrent].next();
+  if(APP.settings.canvasToken) syncCanvas(true);
+  seedDemoData();
+  goApp();
+}
+
+function goApp(){
+  if(!APP.user) APP.user=createUser('Student','student@uni.edu');
+  showScreen('app-screen');
+  refreshApp();
+  // Auto-sync
+  if(APP.settings.googleToken) syncGoogle();
+}
+
+// ════════════════════════════════════════════════════
+//  SEED DEMO DATA (first launch)
+// ════════════════════════════════════════════════════
+function seedDemoData(){
+  // Only seed if Canvas is not connected — no fake events for real users
+  if(APP.settings.canvasConnected) return;
+  if(APP.groups.length) return;
+  // Seed empty groups template only (no fake events or classmates)
+  APP.groups=[];
+  APP.classmates=[];
+  APP.events=[];
+  save();
+}
+
+function clearDemoEvents(){
+  // Remove any leftover demo/seed events (source:'local' with demo IDs e1-e4)
+  APP.events=APP.events.filter(e=>!['e1','e2','e3','e4'].includes(e.id));
+  // Clear demo classmates
+  APP.classmates=APP.classmates.filter(c=>!['FF-A1B2C3','FF-D4E5F6','FF-G7H8I9'].includes(c.id));
+  // Clear demo groups
+  APP.groups=APP.groups.filter(g=>!['g1','g2'].includes(g.id));
+  save();
+}
+
+// ════════════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════════════
+function nav(el,view){
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('on'));
+  if(el) el.classList.add('on');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById(`view-${view}`).classList.add('on');
+  const titles={home:'Home',groups:'Study Groups',calendar:'Calendar',
+    classmates:'Classmates',ai:'AI Assistant',settings:'Settings'};
+  document.getElementById('view-title').textContent=titles[view]||view;
+  document.getElementById('view-sub').textContent='';
+  document.getElementById('header-actions').innerHTML='';
+
+  switch(view){
+    case 'home': renderHome(); break;
+    case 'groups': renderGroups(); break;
+    case 'calendar': renderCalendar(); break;
+    case 'classmates': renderClassmates(); break;
+    case 'ai': initAIView(); break;
+    case 'settings': renderSettings(); break;
+  }
+}
+
+// ════════════════════════════════════════════════════
+//  REFRESH
+// ════════════════════════════════════════════════════
+function refreshApp(){
+  if(APP.user){
+    document.getElementById('sb-avatar').textContent=APP.user.avatar||'?';
+    document.getElementById('sb-pname').textContent=APP.user.name||'Student';
+    document.getElementById('sb-pid').textContent=APP.user.ffId||'FF-000000';
+  }
+  updateBadges();
+  nav(document.querySelector('.sb-item.on'),'home');
+}
+
+function updateBadges(){
+  // Count open help posts across all groups
+  let helpCount=0;
+  APP.groups.forEach(g=>(g.helpPosts||[]).forEach(h=>{if(!h.resolved)helpCount++;}));
+  // Unread tasks
+  let taskCount=0;
+  APP.groups.forEach(g=>(g.tasks||[]).forEach(t=>{if(!t.done)taskCount++;}));
+
+  // Inject badges next to sidebar items
+  document.querySelectorAll('.sb-item').forEach(item=>{
+    const txt=item.textContent;
+    item.querySelectorAll('.sb-badge').forEach(b=>b.remove());
+    if(txt.includes('Groups')&&helpCount>0){
+      const b=document.createElement('span');
+      b.className='sb-badge';
+      b.style.cssText='margin-left:auto;background:#ef4444;color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:20px;';
+      b.textContent=helpCount;
+      item.appendChild(b);
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  HOME VIEW
+// ════════════════════════════════════════════════════
+function renderHome(){
+  // AI greeting
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('home-greeting').textContent=`${h<12?'Good morning':h<17?'Good afternoon':'Good evening'}, ${APP.user?.name?.split(' ')[0]||'there'}!`;
+  const tod=eventsOn(fmtDate(new Date()));
+  const urgent=[];
+  for(let i=0;i<=3;i++){
+    const d=new Date();d.setDate(d.getDate()+i);
+    eventsOn(fmtDate(d)).filter(e=>e.type==='exam'||e.type==='assignment').forEach(e=>urgent.push({...e,days:i}));
+  }
+  let insight='';
+  if(urgent.length){
+    const u=urgent[0];
+    insight=`⚠️ <strong>${u.title}</strong> is ${u.days===0?'due today':u.days===1?'due tomorrow':`due in ${u.days} days`}.`;
+  } else if(tod.length){
+    insight=`You have <strong>${tod.length} event${tod.length>1?'s':''}</strong> today.`;
+  } else {
+    insight='✨ Clear schedule today — great time to get ahead!';
+  }
+  document.getElementById('home-insight').innerHTML=insight;
+
+  // Stats
+  document.getElementById('stat-groups').textContent=APP.groups.length;
+  const next7=[];
+  for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()+i);next7.push(...eventsOn(fmtDate(d)));}
+  document.getElementById('stat-events').textContent=next7.length;
+  document.getElementById('stat-peers').textContent=APP.classmates.filter(c=>c.connected).length;
+
+  // Open help posts callout
+  const openHelp=[];
+  APP.groups.forEach(g=>(g.helpPosts||[]).filter(h=>!h.resolved).forEach(h=>openHelp.push({...h,groupName:g.name,groupId:g.id})));
+  const feed=document.getElementById('home-feed');
+  feed.innerHTML='';
+  if(openHelp.length){
+    feed.innerHTML+=`<div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:11px;padding:12px 14px;margin-bottom:14px;cursor:pointer;" onclick="nav(document.querySelector('.sb-item[onclick*=groups]'),\'groups\')">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">🙋 ${openHelp.length} unanswered question${openHelp.length>1?'s':''} in your groups</div>
+      ${openHelp.slice(0,2).map(h=>`<div style="font-size:12px;color:#ddd;margin-bottom:3px;">· ${esc(h.question.slice(0,60))}${h.question.length>60?'…':''} <span style="color:var(--dim);">in ${esc(h.groupName)}</span></div>`).join('')}
+      <div style="font-size:11px;color:#f59e0b;margin-top:6px;">Help your classmates →</div>
+    </div>`;
+  }
+
+  const feedItems=[];
+  APP.groups.forEach(g=>{
+    (g.posts||[]).forEach(p=>feedItems.push({...p,groupName:g.name,groupIcon:g.icon,groupId:g.id}));
+  });
+  if(!feedItems.length){
+    feed.innerHTML+='<div class="empty-s">No activity yet — create or join a group to see updates.</div>';
+  } else {
+    feedItems.slice(-6).reverse().forEach(f=>{
+      const tag=`<span class="ff-badge badge-blue">${f.groupIcon} ${f.groupName}</span>`;
+      feed.innerHTML+=`<div class="feed-item" onclick="nav(document.querySelector('.sb-item[onclick*=groups]'),\'groups\')" style="cursor:pointer;">
+        <div class="feed-avatar" style="background:hsl(${f.from.charCodeAt(0)*50%360},15%,22%);">${f.from.charAt(0)}</div>
+        <div class="feed-body">
+          <div class="feed-name">${esc(f.from)}</div>
+          <div class="feed-text">${esc(f.text)}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">${tag}<span class="feed-time">${f.time}</span></div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Today events
+  const todEl=document.getElementById('home-today-events');
+  todEl.innerHTML='';
+  if(!tod.length){todEl.innerHTML='<div class="empty-s">Nothing today!</div>';return;}
+  tod.sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach(e=>{
+    const c=TYPE_COLOR[e.type]||'#fff';
+    todEl.innerHTML+=`<div class="ev-item" style="border-left-color:${c}">
+      <div class="ev-dot" style="background:${c}"></div>
+      <div><div class="ev-title">${esc(e.title)}</div>
+      <div class="ev-meta">${e.time?fmtTime(e.time):'All day'}</div></div>
+    </div>`;
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  GROUPS VIEW
+// ════════════════════════════════════════════════════
+function renderGroups(){
+  document.getElementById('header-actions').innerHTML=
+    `<button class="icon-btn" onclick="openAddGroup()" title="New Group">＋</button>`;
+
+  const c=document.getElementById('groups-container');
+  c.innerHTML='<div class="groups-grid" id="groups-grid"></div>';
+  const g=document.getElementById('groups-grid');
+
+  APP.groups.forEach(gr=>{
+    const memberStack=gr.members.slice(0,3).map((_,i)=>`<div class="m-av" style="background:hsl(${i*80},20%,25%);">${String.fromCharCode(65+i)}</div>`).join('');
+    g.innerHTML+=`<div class="group-card" onclick="openGroup('${gr.id}')">
+      <div class="group-icon">${gr.icon||'📚'}</div>
+      <div class="group-name">${esc(gr.name)}</div>
+      <div class="group-course">${esc(gr.course)}</div>
+      ${gr.desc?`<div style="font-size:11px;color:var(--dim);margin-top:6px;line-height:1.5;">${esc(gr.desc)}</div>`:''}
+      <div class="group-meta">
+        <div class="group-members">
+          <div class="member-stack">${memberStack}</div>
+          &nbsp;${gr.members.length} member${gr.members.length!==1?'s':''}
+        </div>
+        <div class="group-activity">${(gr.posts||[]).length} post${(gr.posts||[]).length!==1?'s':''}</div>
+      </div>
+    </div>`;
+  });
+  g.innerHTML+=`<div class="add-group-card" onclick="openAddGroup()">
+    <div style="font-size:28px;margin-bottom:8px;">＋</div>
+    <div style="font-size:13px;font-weight:600;">Create Group</div>
+    <div style="font-size:11px;margin-top:4px;">Study together</div>
+  </div>`;
+}
+
+function openGroup(id, tab){
+  const g=APP.groups.find(x=>x.id===id); if(!g) return;
+  if(!g.tasks) g.tasks=[];
+  if(!g.helpPosts) g.helpPosts=[];
+  if(!g.inviteCode) g.inviteCode='FF-'+Math.random().toString(36).slice(2,8).toUpperCase();
+  const activeTab=tab||'chat';
+  const c=document.getElementById('groups-container');
+
+  const tabBtn=(t,label)=>`<button onclick="openGroup('${id}','${t}')" style="padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid ${activeTab===t?'var(--border2)':'transparent'};background:${activeTab===t?'var(--card)':'transparent'};color:${activeTab===t?'#fff':'var(--dim)'};transition:all .14s;">${label}</button>`;
+
+  // Build sidebar (members + events + invite)
+  const evs=APP.events.filter(e=>e.groupId===id);
+  const memberList=g.members.map((m,i)=>{
+    const name=m===APP.user?.ffId?APP.user.name+' (you)':APP.classmates.find(c=>c.id===m)?.name||m;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <div class="m-av" style="width:28px;height:28px;font-size:12px;background:hsl(${i*80},15%,22%);">${name.charAt(0)}</div>
+      <div style="font-size:12px;">${esc(name)}</div>
+    </div>`;
+  }).join('');
+
+  // Tab content
+  let mainContent='';
+  if(activeTab==='chat'){
+    const posts=(g.posts||[]).map(p=>`
+      <div class="feed-item" style="cursor:default;">
+        <div class="feed-avatar" style="background:hsl(${p.from.charCodeAt(0)*40%360},15%,22%);">${p.from.charAt(0)}</div>
+        <div class="feed-body">
+          <div class="feed-name">${esc(p.from)}</div>
+          <div class="feed-text">${esc(p.text)}</div>
+          <div class="feed-time">${p.time}</div>
+        </div>
+      </div>`).join('');
+    mainContent=`
+      <div id="chat-feed" style="min-height:200px;">
+        ${posts||'<div class="empty-s">No messages yet — say hello!</div>'}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <input class="fi" id="post-input" placeholder="Message the group…" style="flex:1;margin-bottom:0;" onkeydown="if(event.key==='Enter')postToGroup('${id}')"/>
+        <button class="icon-btn" onclick="postToGroup('${id}')" style="width:auto;padding:0 14px;font-size:12px;font-weight:700;">↑</button>
+      </div>`;
+  } else if(activeTab==='events'){
+    const evHtml=evs.length?evs.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>{
+      const col=TYPE_COLOR[e.type]||'#fff';
+      return `<div class="ev-item" style="border-left-color:${col}">
+        <div class="ev-dot" style="background:${col}"></div>
+        <div style="flex:1;"><div class="ev-title">${esc(e.title)}</div>
+        <div class="ev-meta">${e.date}${e.time?' · '+fmtTime(e.time):''} · <span class="ff-badge badge-blue" style="font-size:9px;">${e.type}</span></div></div>
+      </div>`;
+    }).join(''):'<div class="empty-s">No group events yet.</div>';
+    mainContent=`${evHtml}<button class="btn-w" onclick="openAddEvent('${id}')" style="margin-top:14px;font-size:12px;padding:9px;">+ Add Group Event</button>`;
+  } else if(activeTab==='tasks'){
+    const taskHtml=(g.tasks||[]).map((t,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--hover);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;">
+        <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${id}',${i},this.checked)" style="cursor:pointer;width:15px;height:15px;accent-color:#fff;"/>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;${t.done?'text-decoration:line-through;color:var(--dim)':''}">${esc(t.text)}</div>
+          ${t.assignee?`<div style="font-size:11px;color:var(--dim);margin-top:2px;">→ ${esc(t.assignee)}</div>`:''}
+        </div>
+        <button onclick="removeTask('${id}',${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;">✕</button>
+      </div>`).join('');
+    mainContent=`
+      ${taskHtml||'<div class="empty-s">No tasks yet — add one to track group work.</div>'}
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <input class="fi" id="task-input" placeholder="Add a task…" style="flex:1;margin-bottom:0;" onkeydown="if(event.key==='Enter')addTask('${id}')"/>
+        <input class="fi" id="task-assignee" placeholder="Assign to…" style="width:130px;margin-bottom:0;"/>
+        <button class="icon-btn" onclick="addTask('${id}')" style="width:auto;padding:0 14px;font-size:12px;font-weight:700;">Add</button>
+      </div>`;
+  } else if(activeTab==='help'){
+    const helpHtml=(g.helpPosts||[]).map((h,i)=>`
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:12px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;">${esc(h.question)}</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:3px;">Asked by ${esc(h.from)} · ${h.time}</div>
+          </div>
+          <span class="ff-badge ${h.resolved?'badge-green':'badge-amber'}">${h.resolved?'Resolved':'Open'}</span>
+        </div>
+        ${(h.answers||[]).map(a=>`
+          <div style="margin-left:16px;padding:8px 12px;background:var(--hover);border-radius:8px;margin-bottom:6px;border-left:2px solid var(--border2);">
+            <div style="font-size:12px;">${esc(a.text)}</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:4px;">${esc(a.from)} · ${a.time}
+              ${!h.resolved?`<button onclick="resolveHelp('${id}',${i})" style="margin-left:8px;background:none;border:none;color:var(--green);font-size:10px;cursor:pointer;font-weight:700;">✓ Mark Resolved</button>`:''}
+            </div>
+          </div>`).join('')}
+        ${!h.resolved?`<div style="display:flex;gap:8px;margin-top:8px;">
+          <input class="fi" id="help-reply-${i}" placeholder="Type an answer…" style="flex:1;margin-bottom:0;font-size:12px;padding:7px 10px;" onkeydown="if(event.key==='Enter')answerHelp('${id}',${i})"/>
+          <button class="icon-btn" onclick="answerHelp('${id}',${i})" style="width:auto;padding:0 12px;font-size:11px;font-weight:700;">Reply</button>
+        </div>`:''}
+      </div>`).join('');
+    mainContent=`
+      ${helpHtml||'<div class="empty-s">No questions yet.<br/>Post one and your classmates will help!</div>'}
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:11px;padding:14px;margin-top:12px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.07em;">Ask the Group</div>
+        <textarea class="fi" id="help-question" rows="2" placeholder="What do you need help with? Be specific…" style="resize:none;margin-bottom:8px;font-size:13px;"></textarea>
+        <button class="btn-w" onclick="postHelpQuestion('${id}')" style="font-size:12px;padding:8px;">Post Question</button>
+      </div>`;
+  }
+
+  c.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+      <button class="icon-btn" onclick="renderGroups()" style="font-size:16px;">←</button>
+      <div style="font-size:22px;">${g.icon||'📚'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:18px;font-weight:800;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(g.name)}</div>
+        <div style="font-size:12px;color:var(--dim);">${esc(g.course)} · ${g.members.length} member${g.members.length!==1?'s':''}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="icon-btn" onclick="copyInvite('${id}')" title="Copy invite code">🔗</button>
+        <button class="icon-btn" onclick="openAddEvent('${id}')" title="Add event">📅</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start;">
+      <div>
+        <div style="display:flex;gap:6px;margin-bottom:16px;">
+          ${tabBtn('chat','💬 Chat')}
+          ${tabBtn('events','📅 Events')}
+          ${tabBtn('tasks','✓ Tasks')}
+          ${tabBtn('help','🙋 Help')}
+        </div>
+        ${mainContent}
+      </div>
+      <div>
+        <div class="card-label" style="margin-bottom:8px;">Members</div>
+        ${memberList}
+        <div style="margin-top:4px;">
+          <button onclick="copyInvite('${id}')" style="width:100%;padding:8px;background:transparent;border:1px dashed var(--border2);border-radius:8px;color:var(--dim);font-size:11px;cursor:pointer;transition:all .14s;" onmouseover="this.style.borderColor='rgba(255,255,255,.3)';this.style.color='#fff';" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--dim)';">
+            🔗 Invite Classmates
+          </button>
+        </div>
+        ${evs.length?`<div style="margin-top:16px;"><div class="card-label" style="margin-bottom:8px;">Upcoming</div>
+          ${evs.slice(0,3).map(e=>{const col=TYPE_COLOR[e.type]||'#fff';return`<div class="ev-item" style="border-left-color:${col};margin-bottom:6px;"><div class="ev-dot" style="background:${col}"></div><div><div class="ev-title" style="font-size:11px;">${esc(e.title)}</div><div class="ev-meta">${e.date}</div></div></div>`}).join('')}
+        </div>`:''}
+      </div>
+    </div>`;
+}
+
+function copyInvite(groupId){
+  const g=APP.groups.find(x=>x.id===groupId); if(!g) return;
+  const code=g.inviteCode||'FF-'+groupId.slice(-6).toUpperCase();
+  navigator.clipboard?.writeText(`Join my Freeflow group "${g.name}"! Code: ${code}`)
+    .then(()=>alert(`Invite code copied!\n\nCode: ${code}\n\nShare this with classmates — they can enter it in the Classmates tab.`))
+    .catch(()=>alert(`Invite code: ${code}`));
+}
+
+function addTask(groupId){
+  const g=APP.groups.find(x=>x.id===groupId); if(!g) return;
+  const text=document.getElementById('task-input').value.trim(); if(!text) return;
+  const assignee=document.getElementById('task-assignee').value.trim();
+  if(!g.tasks) g.tasks=[];
+  g.tasks.push({text,assignee,done:false,createdBy:APP.user?.name||'You'});
+  save(); openGroup(groupId,'tasks');
+}
+
+function toggleTask(groupId,idx,done){
+  const g=APP.groups.find(x=>x.id===groupId); if(!g||!g.tasks[idx]) return;
+  g.tasks[idx].done=done; save();
+}
+
+function removeTask(groupId,idx){
+  const g=APP.groups.find(x=>x.id===groupId); if(!g) return;
+  g.tasks.splice(idx,1); save(); openGroup(groupId,'tasks');
+}
+
+function postHelpQuestion(groupId){
+  const g=APP.groups.find(x=>x.id===groupId); if(!g) return;
+  const q=document.getElementById('help-question').value.trim(); if(!q) return;
+  if(!g.helpPosts) g.helpPosts=[];
+  g.helpPosts.push({question:q,from:APP.user?.name||'You',time:'just now',answers:[],resolved:false});
+  save(); openGroup(groupId,'help');
+}
+
+function answerHelp(groupId,idx){
+  const g=APP.groups.find(x=>x.id===groupId); if(!g) return;
+  const input=document.getElementById(`help-reply-${idx}`);
+  const text=input?.value.trim(); if(!text) return;
+  g.helpPosts[idx].answers.push({text,from:APP.user?.name||'You',time:'just now'});
+  save(); openGroup(groupId,'help');
+}
+
+function resolveHelp(groupId,idx){
+  const g=APP.groups.find(x=>x.id===groupId); if(!g) return;
+  g.helpPosts[idx].resolved=true; save(); openGroup(groupId,'help');
+}
+
+function postToGroup(id){
+  const input=document.getElementById('post-input');
+  const text=input.value.trim(); if(!text) return;
+  const g=APP.groups.find(x=>x.id===id); if(!g) return;
+  if(!g.posts) g.posts=[];
+  g.posts.push({from:APP.user?.name||'You',text,time:'just now'});
+  save(); openGroup(id);
+}
+
+function openAddGroup(){openOverlay('grp-overlay');}
+function saveGroup(){
+  const name=document.getElementById('grp-name').value.trim();
+  const course=document.getElementById('grp-course').value.trim();
+  if(!name){alert('Please enter a group name.');return;}
+  APP.groups.push({
+    id:'g'+Date.now(),name,course,icon:document.getElementById('grp-icon').value||'📚',
+    desc:document.getElementById('grp-desc').value,
+    members:[APP.user?.ffId||'me'],events:[],posts:[]
+  });
+  save(); cm('grp-overlay'); renderGroups();
+}
+
+// ════════════════════════════════════════════════════
+//  CALENDAR VIEW
+// ════════════════════════════════════════════════════
+function renderCalendar(){
+  document.getElementById('header-actions').innerHTML=
+    `<button class="icon-btn" onclick="openAddEvent()" title="New Event">＋</button>`;
+  renderMainCal();
+  renderCalDay();
+  // Group filter chips
+  const gf=document.getElementById('cal-group-filter');
+  gf.innerHTML=`<div class="cnav" style="width:auto;padding:0 10px;font-size:11px;font-weight:700;color:var(--dim);" onclick="APP.calFilter=null;renderMainCal();">All</div>`;
+  APP.groups.forEach(g=>{
+    gf.innerHTML+=`<div class="cnav" style="width:auto;padding:0 10px;font-size:11px;" onclick="APP.calFilter='${g.id}';renderMainCal();">${g.icon} ${g.name.split(' ').slice(0,2).join(' ')}</div>`;
+  });
+}
+
+function renderMainCal(){
+  const el=document.getElementById('main-cal-grid');
+  const vd=APP.viewDate;
+  document.getElementById('cal-month-title').textContent=`${MONTHS[vd.getMonth()]} ${vd.getFullYear()}`;
+  const first=new Date(vd.getFullYear(),vd.getMonth(),1);
+  const start=new Date(first); start.setDate(start.getDate()-first.getDay());
+  el.innerHTML='';
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const ds=fmtDate(d);
+    let evs=eventsOn(ds);
+    if(APP.calFilter) evs=evs.filter(e=>e.groupId===APP.calFilter);
+    const other=d.getMonth()!==vd.getMonth();
+    const isT=sameDay(d,new Date());
+    const isSel=sameDay(d,APP.selDate)&&!isT;
+    const cell=document.createElement('div');
+    cell.className='cday'+(other?' oth':'')+(isT?' tod':'')+(isSel?' sel':'');
+    cell.innerHTML=`<div class="cdn">${d.getDate()}</div>`;
+    if(evs.length){
+      const dots=document.createElement('div'); dots.className='cdots';
+      evs.slice(0,3).forEach(e=>{
+        const dot=document.createElement('div'); dot.className='cdot';
+        dot.style.background=isT?'rgba(0,0,0,0.5)':TYPE_COLOR[e.type]||'#fff';
+        dots.appendChild(dot);
+      });
+      cell.appendChild(dots);
+    }
+    cell.onclick=()=>{APP.selDate=d;renderMainCal();renderCalDay();};
+    el.appendChild(cell);
+  }
+}
+
+function renderCalDay(){
+  const ds=fmtDate(APP.selDate);
+  const evs=eventsOn(ds).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const el=document.getElementById('cal-day-events');
+  if(!evs.length){el.innerHTML=`<div class="empty-s">No events on ${MONTHS[APP.selDate.getMonth()]} ${APP.selDate.getDate()}.<br/>Click + to add one.</div>`;return;}
+  el.innerHTML=evs.map(e=>{
+    const c=TYPE_COLOR[e.type]||'#fff';
+    const g=APP.groups.find(x=>x.id===e.groupId);
+    return `<div class="ev-item" style="border-left-color:${c}">
+      <div class="ev-dot" style="background:${c}"></div>
+      <div style="flex:1;">
+        <div class="ev-title">${esc(e.title)}</div>
+        <div class="ev-meta">${e.time?fmtTime(e.time):'All day'}${g?' · '+g.icon+' '+g.name:''}</div>
+      </div>
+      ${e.source==='local'?`<button class="icon-btn" onclick="delEvent('${e.id}')" style="width:24px;height:24px;font-size:11px;flex-shrink:0;">✕</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function changeMonth(dir){
+  APP.viewDate=new Date(APP.viewDate.getFullYear(),APP.viewDate.getMonth()+dir,1);
+  renderMainCal(); renderCalDay();
+}
+
+function openAddEvent(groupId){
+  const ds=fmtDate(APP.selDate);
+  document.getElementById('ev-date').value=ds;
+  document.getElementById('ev-time').value='';
+  document.getElementById('ev-title').value='';
+  document.getElementById('ev-type').value='class';
+  // Populate groups
+  const sel=document.getElementById('ev-group');
+  sel.innerHTML='<option value="">— Personal event —</option>';
+  APP.groups.forEach(g=>sel.innerHTML+=`<option value="${g.id}" ${g.id===groupId?'selected':''}>${g.icon} ${g.name}</option>`);
+  openOverlay('ev-overlay');
+}
+
+function saveEvent(){
+  const title=document.getElementById('ev-title').value.trim();
+  if(!title){alert('Please enter a title.');return;}
+  APP.events.push({
+    id:'ev'+Date.now(),
+    title, type:document.getElementById('ev-type').value,
+    date:document.getElementById('ev-date').value,
+    time:document.getElementById('ev-time').value,
+    groupId:document.getElementById('ev-group').value||null,
+    source:'local'
+  });
+  save(); cm('ev-overlay'); renderMainCal(); renderCalDay();
+}
+
+function delEvent(id){
+  if(!confirm('Delete this event?')) return;
+  APP.events=APP.events.filter(e=>e.id!==id);
+  save(); renderMainCal(); renderCalDay();
+}
+
+// ════════════════════════════════════════════════════
+//  CLASSMATES VIEW
+// ════════════════════════════════════════════════════
+function renderClassmates(){
+  document.getElementById('header-actions').innerHTML=
+    `<button class="icon-btn" onclick="openAddClassmate()" title="Add by ID">＋</button>`;
+  const q=(document.getElementById('cm-search')?.value||'').toLowerCase();
+  const list=APP.classmates.filter(c=>
+    !q||c.name.toLowerCase().includes(q)||c.id.toLowerCase().includes(q)||
+    (c.school||'').toLowerCase().includes(q)
+  );
+  const grid=document.getElementById('cm-grid');
+  if(!grid) return;
+  if(!list.length){grid.innerHTML='<div class="empty-s" style="grid-column:1/-1;">No classmates found. Add someone by their Freeflow ID!</div>';return;}
+  grid.innerHTML=list.map(c=>`
+    <div class="cm-card">
+      <div class="cm-avatar">${c.name.charAt(0)}</div>
+      <div class="cm-name">${esc(c.name)}</div>
+      <div class="cm-school">${esc(c.school||'Unknown school')}</div>
+      <div class="cm-courses">${(c.courses||[]).map(x=>`<div class="cm-course">${esc(x)}</div>`).join('')}</div>
+      <div class="ff-id">${c.id}</div>
+      <div class="cm-actions">
+        <button class="cm-btn" onclick="messageClassmate('${c.id}')">✉ Message</button>
+        <button class="cm-btn primary" onclick="inviteToGroup('${c.id}')">Add to Group</button>
+      </div>
+    </div>`).join('');
+}
+
+function openAddClassmate(){openOverlay('cm-overlay');}
+function doAddClassmate(){
+  const id=document.getElementById('cm-add-id').value.trim();
+  if(!id){alert('Please enter a Freeflow ID or email.');return;}
+  // Demo: add as fake classmate
+  const existing=APP.classmates.find(c=>c.id===id||c.email===id);
+  if(existing){alert('This person is already in your network!');cm('cm-overlay');return;}
+  APP.classmates.push({id:id.startsWith('FF-')?id:'FF-'+Math.random().toString(36).slice(2,8).toUpperCase(),
+    name:'New Classmate',school:APP.user?.school||'',courses:[],connected:true});
+  save(); cm('cm-overlay'); renderClassmates();
+}
+
+function messageClassmate(id){
+  const c=APP.classmates.find(x=>x.id===id);
+  // Navigate to AI with context
+  nav(document.querySelector('.sb-item[onclick*=ai]'),'ai');
+  setTimeout(()=>addAIMsg(`Hi! I can help you draft a message to ${c?.name||'your classmate'}. What would you like to say?`,'ai'),100);
+}
+
+function inviteToGroup(cmId){
+  if(!APP.groups.length){alert('Create a group first!');return;}
+  const name=prompt('Invite to which group? Enter group name:',APP.groups[0]?.name||'');
+  const g=APP.groups.find(x=>x.name.toLowerCase()===name?.toLowerCase());
+  if(!g){alert('Group not found.');return;}
+  if(!g.members.includes(cmId)) g.members.push(cmId);
+  save(); alert('Invited! They can now see the group calendar and posts.');
+}
+
+// ════════════════════════════════════════════════════
+//  AI VIEW
+// ════════════════════════════════════════════════════
+function initAIView(){
+  const msgs=document.getElementById('ai-messages');
+  if(msgs.children.length===0){
+    const greet=new Date().getHours()<12?'Good morning':'Good day';
+    addAIMsg(`${greet}, ${APP.user?.name?.split(' ')[0]||'there'}! I'm your Freeflow AI assistant. I can help with your schedule, group updates, study tips, and more. What can I do for you?`,'ai');
+  }
+  document.getElementById('ai-input').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();}};
+  // Fill AI key if set
+  document.getElementById('ai-api-key').value=APP.settings.claudeKey||'';
+}
+
+function quickAI(el){
+  document.getElementById('ai-input').value=el.textContent;
+  sendAI();
+}
+
+function sendAI(){
+  const input=document.getElementById('ai-input');
+  const msg=input.value.trim(); if(!msg) return;
+  addAIMsg(msg,'user'); input.value='';
+  setTimeout(()=>addAIMsg(genAIResponse(msg),'ai'),380);
+}
+
+function addAIMsg(text,role){
+  const msgs=document.getElementById('ai-messages');
+  if(!msgs) return;
+  const el=document.createElement('div');
+  el.className=`ai-msg ${role}`;
+  el.style.whiteSpace='pre-wrap'; el.textContent=text;
+  msgs.appendChild(el); msgs.scrollTop=msgs.scrollHeight;
+}
+
+function genAIResponse(msg){
+  const q=msg.toLowerCase();
+  const tod=eventsOn(fmtDate(new Date()));
+  const tomorrow=eventsOn(fmtDate(new Date(Date.now()+864e5)));
+
+  if(/today/.test(q)){
+    if(!tod.length) return "You have nothing scheduled today — great day for deep work!";
+    return `Today you have:\n`+tod.sort((a,b)=>(a.time||'').localeCompare(b.time||'')).map(e=>`• ${e.title}${e.time?' at '+fmtTime(e.time):''}`).join('\n');
+  }
+  if(/tomorrow/.test(q)){
+    if(!tomorrow.length) return "Nothing scheduled tomorrow — enjoy the breathing room!";
+    return `Tomorrow:\n`+tomorrow.map(e=>`• ${e.title}${e.time?' at '+fmtTime(e.time):''}`).join('\n');
+  }
+  if(/deadline|due|assignment/.test(q)){
+    const asgn=[];
+    for(let i=0;i<=7;i++){const d=new Date();d.setDate(d.getDate()+i);eventsOn(fmtDate(d)).filter(e=>e.type==='assignment').forEach(e=>asgn.push({...e,days:i}));}
+    if(!asgn.length) return "No assignments due in the next 7 days. You're on top of it! 🎉";
+    return `Upcoming assignments:\n`+asgn.map(e=>`• ${e.title} — ${e.days===0?'today':e.days===1?'tomorrow':`in ${e.days} days`}`).join('\n');
+  }
+  if(/exam|test/.test(q)){
+    const exams=[];
+    for(let i=0;i<=14;i++){const d=new Date();d.setDate(d.getDate()+i);eventsOn(fmtDate(d)).filter(e=>e.type==='exam').forEach(e=>exams.push({...e,days:i}));}
+    if(!exams.length) return "No exams in the next two weeks. You're clear! 🎉";
+    return `Upcoming exams:\n`+exams.map(e=>`• ${e.title} — ${e.days===0?'today':e.days===1?'tomorrow':`in ${e.days} days`}`).join('\n');
+  }
+  if(/study tip|how to study|focus/.test(q)){
+    const tips=['Try the Pomodoro technique: 25 min focus, 5 min break. Repeat 4×, then a longer break.','Active recall beats re-reading: close your notes and test yourself.','Spaced repetition: review at 1 day, 3 days, 1 week intervals.','Study your hardest subject when energy is highest (usually morning).','Teach the concept out loud — it instantly reveals what you don\'t know.'];
+    return '💡 '+tips[Math.floor(Math.random()*tips.length)];
+  }
+  if(/group|summarize|classmate/.test(q)){
+    if(!APP.groups.length) return "You haven't joined any groups yet. Head to Groups to create or join one!";
+    return `You're in ${APP.groups.length} group${APP.groups.length>1?'s':''}:\n`+APP.groups.map(g=>`• ${g.icon} ${g.name} (${g.members.length} members)`).join('\n');
+  }
+  if(/classmate|peer|friend/.test(q)){
+    if(!APP.classmates.length) return "No classmates connected yet. Add some from the Classmates tab!";
+    return `You're connected with ${APP.classmates.length} classmate${APP.classmates.length>1?'s':''}:\n`+APP.classmates.map(c=>`• ${c.name} (${c.school})`).join('\n');
+  }
+  if(/help|what can you/.test(q)){
+    return "Here's what I can help with:\n• 📅 Your schedule & events\n• 📝 Upcoming assignments & exams\n• 🤝 Group summaries\n• 💡 Study tips & strategies\n• 👥 Classmate info\n\nJust ask!";
+  }
+  const def=["I can help with your schedule, groups, and study tips! Try: 'What do I have today?' or 'Give me a study tip'.",
+    `Got it. You currently have ${APP.events.length} events and are in ${APP.groups.length} groups. What would you like to explore?`,
+    "Ask me about your schedule, deadlines, classmates, or study strategies!"];
+  return def[Math.floor(Math.random()*def.length)];
+}
+
+function saveAIKey(){
+  APP.settings.claudeKey=document.getElementById('ai-api-key').value.trim();
+  save(); alert('AI key saved!');
+}
+
+// ════════════════════════════════════════════════════
+//  SETTINGS VIEW
+// ════════════════════════════════════════════════════
+function renderSettings(){
+  if(!APP.user) return;
+  document.getElementById('set-name').value=APP.user.name||'';
+  document.getElementById('set-email').value=APP.user.email||'';
+  document.getElementById('set-school').value=APP.user.school||'';
+  document.getElementById('set-ffid').value=APP.user.ffId||'';
+  document.getElementById('set-canvas-url').value=APP.settings.canvasUrl||'';
+  document.getElementById('set-canvas-token').value=APP.settings.canvasToken||'';
+  document.getElementById('set-google-id').value=APP.settings.googleClientId||'';
+  // Groups settings list
+  const gl=document.getElementById('groups-settings-list');
+  gl.innerHTML=APP.groups.map(g=>`<div class="int-item">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:20px;">${g.icon}</span>
+      <div><div style="font-size:13px;font-weight:600;">${esc(g.name)}</div>
+      <div style="font-size:11px;color:var(--dim);">${g.members.length} members</div></div>
+    </div>
+    <button class="int-btn" style="color:var(--red);border-color:rgba(239,68,68,.3);" onclick="leaveGroup('${g.id}')">Leave</button>
+  </div>`).join('')||'<div class="empty-s">No groups yet.</div>';
+}
+
+function sTab(el,tab){
+  document.querySelectorAll('.snav-item').forEach(i=>i.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.stab-view').forEach(v=>v.classList.remove('on'));
+  document.getElementById(`stab-${tab}`).classList.add('on');
+}
+
+function saveProfile(){
+  if(!APP.user) return;
+  APP.user.name=document.getElementById('set-name').value.trim()||APP.user.name;
+  APP.user.email=document.getElementById('set-email').value.trim();
+  APP.user.school=document.getElementById('set-school').value.trim();
+  APP.user.avatar=APP.user.name.charAt(0).toUpperCase();
+  save(); refreshApp(); alert('Profile saved!');
+}
+
+function copyFFID(){
+  navigator.clipboard?.writeText(APP.user?.ffId||'').then(()=>alert('Freeflow ID copied!'));
+}
+
+function leaveGroup(id){
+  if(!confirm('Leave this group?')) return;
+  APP.groups=APP.groups.filter(g=>g.id!==id);
+  save(); renderSettings();
+}
+
+// ════════════════════════════════════════════════════
+//  CANVAS & GOOGLE INTEGRATIONS
+// ════════════════════════════════════════════════════
+function saveCanvasAndSync(){
+  const url=document.getElementById('set-canvas-url')?.value.trim().replace(/\/$/,'');
+  const tok=document.getElementById('set-canvas-token')?.value.trim();
+  if(!url||!tok){alert('Please fill in both the Canvas URL and API token above.');return;}
+  APP.settings.canvasUrl=url;
+  APP.settings.canvasToken=tok;
+  save();
+  syncCanvas(false);
+}
+
+async function syncCanvas(silent){
+  const {canvasUrl,canvasToken}=APP.settings;
+  if(!canvasUrl||!canvasToken){if(!silent)alert('Please enter your Canvas URL and token first.');return;}
+  try{
+    const cr=await fetch(`${canvasUrl}/api/v1/courses?enrollment_state=active&per_page=50`,{headers:{Authorization:`Bearer ${canvasToken}`}});
+    if(!cr.ok) throw new Error(`Canvas responded ${cr.status}. Check URL and token.`);
+    const courses=await cr.json();
+    if(!Array.isArray(courses)) throw new Error('Unexpected Canvas response');
+    const codes=courses.map(c=>`course_${c.id}`);
+    const now=new Date(), end=new Date(now); end.setDate(end.getDate()+90);
+    async function fetchCal(type){
+      const p=new URLSearchParams({type,per_page:'200',start_date:fmtDate(now),end_date:fmtDate(end)});
+      codes.forEach(c=>p.append('context_codes[]',c));
+      const r=await fetch(`${canvasUrl}/api/v1/calendar_events?${p}`,{headers:{Authorization:`Bearer ${canvasToken}`}});
+      return r.ok?r.json():[];
+    }
+    const [asgn,evts]=await Promise.all([fetchCal('assignment'),fetchCal('event')]);
+    APP.events=APP.events.filter(e=>e.source!=='canvas');
+    let count=0;
+    (Array.isArray(asgn)?asgn:[]).forEach(a=>{
+      const raw=a.assignment?.due_at||a.end_at; if(!raw) return;
+      const[date,tp]=raw.split('T');
+      APP.events.push({id:`cv_a_${a.id}`,title:a.title||'Assignment',type:'assignment',date,time:tp?.slice(0,5)||null,source:'canvas',groupId:null});count++;
+    });
+    (Array.isArray(evts)?evts:[]).forEach(e=>{
+      const raw=e.start_at; if(!raw) return;
+      const[date,tp]=raw.split('T');
+      APP.events.push({id:`cv_e_${e.id}`,title:e.title||'Canvas Event',type:'class',date,time:tp?.slice(0,5)||null,source:'canvas',groupId:null});count++;
+    });
+    clearDemoEvents();
+    APP.settings.canvasConnected=true;
+    save();
+    if(!silent) alert(`Canvas synced! ${count} events imported from your real courses.`);
+  }catch(err){
+    if(!silent){
+      const isFileProtocol = location.protocol === 'file:';
+      const isLoadFailed   = err.message.toLowerCase().includes('load') || err.message.toLowerCase().includes('failed') || err.message === 'Failed to fetch' || err.name === 'TypeError';
+      if(isFileProtocol || isLoadFailed){
+        showCanvasCORSHelp();
+      } else {
+        showError(`Canvas error: ${err.message}`);
+      }
+    }
+  }
+}
+
+function showCanvasCORSHelp(){
+  // Remove any existing help modal
+  document.getElementById('cors-modal')?.remove();
+
+  const el = document.createElement('div');
+  el.id = 'cors-modal';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999;';
+  el.innerHTML = `
+    <div style="background:#0d0d0d;border:1px solid #2a2a2a;border-radius:18px;padding:32px;width:500px;max-width:92vw;">
+      <div style="font-size:22px;margin-bottom:6px;">⚠️ One quick fix needed</div>
+      <div style="font-size:15px;font-weight:800;margin-bottom:12px;letter-spacing:-.3px;">Canvas can't connect from a local file</div>
+      <div style="font-size:13px;color:#999;line-height:1.65;margin-bottom:20px;">
+        Your browser blocks requests to Canvas when Freeflow is opened directly as a file.
+        You need to open it via <strong style="color:#fff;">localhost</strong> instead — takes 10 seconds.
+      </div>
+
+      <div style="background:#000;border:1px solid #222;border-radius:12px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#666;margin-bottom:12px;">Run this in Terminal</div>
+
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px;color:#555;margin-bottom:4px;">Step 1 — open Terminal (press ⌘ Space, type "Terminal", hit Enter)</div>
+          <div style="background:#111;border:1px solid #222;border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <code style="font-size:12px;color:#7dd3fc;font-family:monospace;">cd ~/Downloads/freeflow</code>
+            <button onclick="navigator.clipboard?.writeText('cd ~/Downloads/freeflow')" style="background:none;border:1px solid #333;border-radius:5px;color:#888;font-size:10px;padding:3px 8px;cursor:pointer;">Copy</button>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:10px;color:#555;margin-bottom:4px;">Step 2 — start the server</div>
+          <div style="background:#111;border:1px solid #222;border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <code style="font-size:12px;color:#7dd3fc;font-family:monospace;">python3 -m http.server 3000</code>
+            <button onclick="navigator.clipboard?.writeText('python3 -m http.server 3000')" style="background:none;border:1px solid #333;border-radius:5px;color:#888;font-size:10px;padding:3px 8px;cursor:pointer;">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;">
+        <strong style="color:#7dd3fc;">Step 3</strong> — open <a href="http://localhost:3000" target="_blank" style="color:#3b82f6;font-weight:700;">http://localhost:3000</a> in your browser<br/>
+        <span style="color:#666;font-size:11px;">Your settings are already saved — Canvas will connect right away.</span>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('cors-modal').remove()" style="flex:1;padding:11px;background:transparent;border:1px solid #2a2a2a;border-radius:9px;color:#888;font-size:13px;cursor:pointer;">Dismiss</button>
+        <a href="http://localhost:3000" target="_blank" style="flex:2;padding:11px;background:#fff;border:none;border-radius:9px;color:#000;font-size:13px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">Open localhost:3000 →</a>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', e => { if(e.target===el) el.remove(); });
+}
+
+function showError(msg){
+  alert(msg);
+}
+
+function connectGoogle(){
+  const id=document.getElementById('set-google-id').value.trim();
+  APP.settings.googleClientId=id; save();
+  if(!id){alert('Please enter your Google OAuth client ID first.');return;}
+  const redirect=location.href.split('#')[0];
+  const scope='https://www.googleapis.com/auth/calendar.readonly';
+  location.href=`https://accounts.google.com/o/oauth2/auth?client_id=${encodeURIComponent(id)}&redirect_uri=${encodeURIComponent(redirect)}&scope=${encodeURIComponent(scope)}&response_type=token&prompt=consent`;
+}
+
+async function handleGoogleReturn(){
+  if(!location.hash.includes('access_token')) return;
+  const p=new URLSearchParams(location.hash.slice(1));
+  const token=p.get('access_token'); if(!token) return;
+  history.replaceState(null,'',location.pathname);
+  APP.settings.googleToken=token; save(); await syncGoogle(token);
+}
+
+async function syncGoogle(token){
+  token=token||APP.settings.googleToken; if(!token) return;
+  try{
+    const now=new Date().toISOString(), end=new Date(Date.now()+90*864e5).toISOString();
+    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${now}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=250`,{headers:{Authorization:`Bearer ${token}`}});
+    if(r.status===401){APP.settings.googleToken=null;save();return;}
+    const data=await r.json();
+    APP.events=APP.events.filter(e=>e.source!=='google');
+    (data.items||[]).forEach(item=>{
+      const st=item.start?.dateTime||item.start?.date; if(!st) return;
+      const date=st.split('T')[0], time=st.includes('T')?st.split('T')[1].slice(0,5):null;
+      APP.events.push({id:`gg_${item.id}`,title:item.summary||'Google Event',type:'meeting',date,time,source:'google',groupId:null});
+    });
+    save();
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════════════
+//  MODAL HELPERS
+// ════════════════════════════════════════════════════
+function openOverlay(id){document.getElementById(id).classList.add('open');}
+function cm(id){document.getElementById(id).classList.remove('open');}
+function oc(e,id){if(e.target.id===id)cm(id);}
+
+// ════════════════════════════════════════════════════
+//  DATE UTILS
+// ════════════════════════════════════════════════════
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const pad=n=>String(n).padStart(2,'0');
+const fmtDate=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const sameDay=(a,b)=>fmtDate(a)===fmtDate(b);
+function fmtTime(t){if(!t)return'';const[h,m]=t.split(':').map(Number);return`${h%12||12}:${pad(m)} ${h>=12?'PM':'AM'}`;}
+function eventsOn(ds){return APP.events.filter(e=>e.date===ds);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  load();
+  // Start landing grid
+  const lc=document.getElementById('grid-canvas');
+  lc.style.width='100%'; lc.style.height='100%';
+  startGrid(lc,{cell:44,spring:0.045,damp:0.83,mr:160,mf:9,base:0.10,boost:0.65,noise:0.015});
+
+  // Check Google OAuth return
+  handleGoogleReturn();
+
+  // Check if user is already logged in
+  if(APP.user?.name){
+    seedDemoData();
+    goApp();
+  }
+  // otherwise landing screen is shown by default
+});
+</script>
+</body>
+</html>
